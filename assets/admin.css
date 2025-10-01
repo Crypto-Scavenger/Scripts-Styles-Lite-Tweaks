@@ -1,0 +1,15 @@
+/**
+ * Admin styles for Scripts & Styles Lite Tweaks
+ *
+ * @package ScriptsStylesLiteTweaks
+ * @since 1.0.0
+ */
+
+.sslt-settings-table th {
+	width: 250px;
+}
+
+.sslt-settings-table td label {
+	display: inline-block;
+	margin-top: 5px;
+}
