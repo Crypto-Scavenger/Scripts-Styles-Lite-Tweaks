@@ -91,7 +91,7 @@ class SSLT_Core {
 	public function disable_jquery_migrate( $scripts ) {
 		$settings = $this->get_settings();
 		
-		if ( '1' === $settings['disable_jquery_migrate'] && ! is_admin() ) {
+		if ( '1' === ( $settings['disable_jquery_migrate'] ?? '0' ) && ! is_admin() ) {
 			if ( isset( $scripts->registered['jquery'] ) ) {
 				$script = $scripts->registered['jquery'];
 				
@@ -108,7 +108,7 @@ class SSLT_Core {
 	public function disable_emoji_scripts() {
 		$settings = $this->get_settings();
 		
-		if ( '1' === $settings['disable_emoji_scripts'] ) {
+		if ( '1' === ( $settings['disable_emoji_scripts'] ?? '0' ) ) {
 			remove_action( 'wp_head', 'print_emoji_detection_script', 7 );
 			remove_action( 'admin_print_scripts', 'print_emoji_detection_script' );
 			remove_action( 'wp_print_styles', 'print_emoji_styles' );
@@ -156,7 +156,7 @@ class SSLT_Core {
 	public function disable_embeds() {
 		$settings = $this->get_settings();
 		
-		if ( '1' === $settings['disable_embeds'] ) {
+		if ( '1' === ( $settings['disable_embeds'] ?? '0' ) ) {
 			global $wp;
 			
 			$wp->public_query_vars = array_diff( $wp->public_query_vars, array( 'embed' ) );
@@ -203,7 +203,7 @@ class SSLT_Core {
 	public function disable_admin_bar_scripts() {
 		$settings = $this->get_settings();
 		
-		if ( '1' === $settings['disable_admin_bar_scripts'] && ! is_user_logged_in() ) {
+		if ( '1' === ( $settings['disable_admin_bar_scripts'] ?? '0' ) && ! is_user_logged_in() ) {
 			wp_dequeue_style( 'admin-bar' );
 			wp_dequeue_script( 'admin-bar' );
 		}
@@ -215,7 +215,7 @@ class SSLT_Core {
 	public function disable_dashicons() {
 		$settings = $this->get_settings();
 		
-		if ( '1' === $settings['disable_dashicons'] && ! is_user_logged_in() ) {
+		if ( '1' === ( $settings['disable_dashicons'] ?? '0' ) && ! is_user_logged_in() ) {
 			wp_dequeue_style( 'dashicons' );
 			wp_deregister_style( 'dashicons' );
 		}
@@ -227,7 +227,7 @@ class SSLT_Core {
 	public function enable_selective_blocks() {
 		$settings = $this->get_settings();
 		
-		if ( '1' === $settings['enable_selective_blocks'] ) {
+		if ( '1' === ( $settings['enable_selective_blocks'] ?? '0' ) ) {
 			global $wp_styles;
 			
 			if ( ! is_singular() && ! is_page() ) {
@@ -289,7 +289,7 @@ class SSLT_Core {
 	public function disable_global_styles() {
 		$settings = $this->get_settings();
 		
-		if ( '1' === $settings['disable_global_styles'] ) {
+		if ( '1' === ( $settings['disable_global_styles'] ?? '0' ) ) {
 			wp_dequeue_style( 'global-styles' );
 			wp_dequeue_style( 'wp-block-library-theme' );
 		}
@@ -304,7 +304,7 @@ class SSLT_Core {
 	public function disable_classic_theme_styles( $theme_json ) {
 		$settings = $this->get_settings();
 		
-		if ( '1' === $settings['disable_classic_theme_styles'] ) {
+		if ( '1' === ( $settings['disable_classic_theme_styles'] ?? '0' ) ) {
 			remove_action( 'wp_enqueue_scripts', 'wp_enqueue_classic_theme_styles' );
 			
 			$new_data = $theme_json->get_data();
@@ -325,7 +325,7 @@ class SSLT_Core {
 	public function disable_recent_comments_style() {
 		$settings = $this->get_settings();
 		
-		if ( '1' === $settings['disable_recent_comments_style'] ) {
+		if ( '1' === ( $settings['disable_recent_comments_style'] ?? '0' ) ) {
 			global $wp_widget_factory;
 			
 			if ( isset( $wp_widget_factory->widgets['WP_Widget_Recent_Comments'] ) ) {
