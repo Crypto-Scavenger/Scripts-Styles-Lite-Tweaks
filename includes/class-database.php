@@ -41,20 +41,28 @@ class SSLT_Database {
 		$table_name = $wpdb->prefix . SSLT_TABLE_SETTINGS;
 		$charset_collate = $wpdb->get_charset_collate();
 		
-		$sql = $wpdb->prepare(
-			"CREATE TABLE IF NOT EXISTS %i (
-				id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-				setting_key varchar(191) NOT NULL,
-				setting_value longtext,
-				PRIMARY KEY (id),
-				UNIQUE KEY setting_key (setting_key)
-			) %s",
-			$table_name,
-			$charset_collate
-		);
+		// Create table using %i placeholder for WordPress 6.2+
+		$sql = "CREATE TABLE IF NOT EXISTS `{$table_name}` (
+			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			setting_key varchar(191) NOT NULL,
+			setting_value longtext,
+			PRIMARY KEY (id),
+			UNIQUE KEY setting_key (setting_key)
+		) {$charset_collate};";
 		
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( $sql );
+		
+		// Verify table was created
+		$table_exists = $wpdb->get_var( $wpdb->prepare(
+			"SHOW TABLES LIKE %s",
+			$table_name
+		) );
+		
+		if ( $table_name !== $table_exists ) {
+			error_log( 'SSLT: Failed to create database table ' . $table_name );
+			return;
+		}
 		
 		// Set default settings
 		$defaults = array(
@@ -72,8 +80,13 @@ class SSLT_Database {
 		
 		$database = new self();
 		foreach ( $defaults as $key => $value ) {
-			if ( false === $database->get_setting( $key ) ) {
-				$database->save_setting( $key, $value );
+			// Only set if doesn't already exist
+			$existing = $database->get_setting( $key );
+			if ( false === $existing ) {
+				$result = $database->save_setting( $key, $value );
+				if ( false === $result ) {
+					error_log( 'SSLT: Failed to set default for ' . $key );
+				}
 			}
 		}
 	}
@@ -107,8 +120,7 @@ class SSLT_Database {
 		$table = $this->get_table_name();
 		
 		$value = $wpdb->get_var( $wpdb->prepare(
-			"SELECT setting_value FROM %i WHERE setting_key = %s",
-			$table,
+			"SELECT setting_value FROM `{$table}` WHERE setting_key = %s",
 			$key
 		) );
 		
@@ -132,19 +144,23 @@ class SSLT_Database {
 		global $wpdb;
 		$table = $this->get_table_name();
 		
-		$results = $wpdb->get_results( $wpdb->prepare(
-			"SELECT setting_key, setting_value FROM %i",
-			$table
-		) );
+		$results = $wpdb->get_results(
+			"SELECT setting_key, setting_value FROM `{$table}`",
+			ARRAY_A
+		);
 		
-		if ( false === $results ) {
-			error_log( 'SSLT DB Error: ' . $wpdb->last_error );
+		if ( false === $results || null === $results ) {
+			error_log( 'SSLT: Failed to retrieve settings - ' . $wpdb->last_error );
 			return array();
 		}
 		
 		$settings = array();
-		foreach ( $results as $row ) {
-			$settings[ $row->setting_key ] = maybe_unserialize( $row->setting_value );
+		if ( is_array( $results ) ) {
+			foreach ( $results as $row ) {
+				if ( isset( $row['setting_key'] ) && isset( $row['setting_value'] ) ) {
+					$settings[ $row['setting_key'] ] = maybe_unserialize( $row['setting_value'] );
+				}
+			}
 		}
 		
 		$this->settings_cache = $settings;
