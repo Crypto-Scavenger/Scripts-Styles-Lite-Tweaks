@@ -117,7 +117,7 @@ class SSLT_Admin {
 				<?php wp_nonce_field( 'sslt_save_settings', 'sslt_nonce' ); ?>
 				<input type="hidden" name="action" value="sslt_save_settings">
 				
-				<table class="form-table" role="presentation">
+				<table class="form-table sslt-settings-table" role="presentation">
 					<tbody>
 						<tr>
 							<th scope="row">
@@ -132,7 +132,7 @@ class SSLT_Admin {
 										id="disable_jquery_migrate" 
 										name="disable_jquery_migrate"
 										value="1"
-										<?php checked( '1', $settings['disable_jquery_migrate'] ); ?>
+										<?php checked( '1', $settings['disable_jquery_migrate'] ?? '0' ); ?>
 									/>
 									<?php esc_html_e( 'Remove jQuery Migrate compatibility script for older code. Only disable if your theme/plugins don\'t need it.', 'scripts-styles-lite-tweaks' ); ?>
 								</label>
@@ -152,7 +152,7 @@ class SSLT_Admin {
 										id="disable_emoji_scripts" 
 										name="disable_emoji_scripts"
 										value="1"
-										<?php checked( '1', $settings['disable_emoji_scripts'] ); ?>
+										<?php checked( '1', $settings['disable_emoji_scripts'] ?? '0' ); ?>
 									/>
 									<?php esc_html_e( 'Remove WordPress emoji detection scripts. Modern browsers support emojis natively.', 'scripts-styles-lite-tweaks' ); ?>
 								</label>
@@ -172,7 +172,7 @@ class SSLT_Admin {
 										id="disable_embeds" 
 										name="disable_embeds"
 										value="1"
-										<?php checked( '1', $settings['disable_embeds'] ); ?>
+										<?php checked( '1', $settings['disable_embeds'] ?? '0' ); ?>
 									/>
 									<?php esc_html_e( 'Remove automatic embedding of external content scripts.', 'scripts-styles-lite-tweaks' ); ?>
 								</label>
@@ -192,7 +192,7 @@ class SSLT_Admin {
 										id="disable_admin_bar_scripts" 
 										name="disable_admin_bar_scripts"
 										value="1"
-										<?php checked( '1', $settings['disable_admin_bar_scripts'] ); ?>
+										<?php checked( '1', $settings['disable_admin_bar_scripts'] ?? '0' ); ?>
 									/>
 									<?php esc_html_e( 'Remove admin bar scripts from frontend for non-logged users.', 'scripts-styles-lite-tweaks' ); ?>
 								</label>
@@ -212,7 +212,7 @@ class SSLT_Admin {
 										id="disable_dashicons" 
 										name="disable_dashicons"
 										value="1"
-										<?php checked( '1', $settings['disable_dashicons'] ); ?>
+										<?php checked( '1', $settings['disable_dashicons'] ?? '0' ); ?>
 									/>
 									<?php esc_html_e( 'Remove WordPress admin icons from frontend for non-logged users.', 'scripts-styles-lite-tweaks' ); ?>
 								</label>
@@ -232,7 +232,7 @@ class SSLT_Admin {
 										id="enable_selective_blocks" 
 										name="enable_selective_blocks"
 										value="1"
-										<?php checked( '1', $settings['enable_selective_blocks'] ); ?>
+										<?php checked( '1', $settings['enable_selective_blocks'] ?? '0' ); ?>
 									/>
 									<?php esc_html_e( 'Only load CSS styles for Gutenberg blocks that are actually present on each page. Analyzes page content and only includes necessary block styles.', 'scripts-styles-lite-tweaks' ); ?>
 								</label>
@@ -252,7 +252,7 @@ class SSLT_Admin {
 										id="disable_global_styles" 
 										name="disable_global_styles"
 										value="1"
-										<?php checked( '1', $settings['disable_global_styles'] ); ?>
+										<?php checked( '1', $settings['disable_global_styles'] ?? '0' ); ?>
 									/>
 									<?php esc_html_e( 'Remove WordPress\'s default CSS for block editor global styles.', 'scripts-styles-lite-tweaks' ); ?>
 								</label>
@@ -272,7 +272,7 @@ class SSLT_Admin {
 										id="disable_classic_theme_styles" 
 										name="disable_classic_theme_styles"
 										value="1"
-										<?php checked( '1', $settings['disable_classic_theme_styles'] ); ?>
+										<?php checked( '1', $settings['disable_classic_theme_styles'] ?? '0' ); ?>
 									/>
 									<?php esc_html_e( 'Remove backward compatibility CSS for classic themes.', 'scripts-styles-lite-tweaks' ); ?>
 								</label>
@@ -292,7 +292,7 @@ class SSLT_Admin {
 										id="disable_recent_comments_style" 
 										name="disable_recent_comments_style"
 										value="1"
-										<?php checked( '1', $settings['disable_recent_comments_style'] ); ?>
+										<?php checked( '1', $settings['disable_recent_comments_style'] ?? '0' ); ?>
 									/>
 									<?php esc_html_e( 'Remove default styling for recent comments widget.', 'scripts-styles-lite-tweaks' ); ?>
 								</label>
@@ -312,7 +312,7 @@ class SSLT_Admin {
 										id="cleanup_on_uninstall" 
 										name="cleanup_on_uninstall"
 										value="1"
-										<?php checked( '1', $settings['cleanup_on_uninstall'] ); ?>
+										<?php checked( '1', $settings['cleanup_on_uninstall'] ?? '0' ); ?>
 									/>
 									<?php esc_html_e( 'Remove all plugin data when uninstalling.', 'scripts-styles-lite-tweaks' ); ?>
 								</label>
