@@ -91,7 +91,7 @@ class SSLT_Core {
 	public function disable_jquery_migrate( $scripts ) {
 		$settings = $this->get_settings();
 		
-		if ( '1' === ( $settings['disable_jquery_migrate'] ?? '0' ) && ! is_admin() ) {
+		if ( '1' === $settings['disable_jquery_migrate'] && ! is_admin() ) {
 			if ( isset( $scripts->registered['jquery'] ) ) {
 				$script = $scripts->registered['jquery'];
 				
@@ -108,7 +108,7 @@ class SSLT_Core {
 	public function disable_emoji_scripts() {
 		$settings = $this->get_settings();
 		
-		if ( '1' === ( $settings['disable_emoji_scripts'] ?? '0' ) ) {
+		if ( '1' === $settings['disable_emoji_scripts'] ) {
 			remove_action( 'wp_head', 'print_emoji_detection_script', 7 );
 			remove_action( 'admin_print_scripts', 'print_emoji_detection_script' );
 			remove_action( 'wp_print_styles', 'print_emoji_styles' );
@@ -117,22 +117,22 @@ class SSLT_Core {
 			remove_filter( 'comment_text_rss', 'wp_staticize_emoji' );
 			remove_filter( 'wp_mail', 'wp_staticize_emoji_for_email' );
 			
-			add_filter( 'tiny_mce_plugins', array( $this, 'disable_emojis_tinymce' ) );
-			add_filter( 'wp_resource_hints', array( $this, 'disable_emojis_dns_prefetch' ), 10, 2 );
+			add_filter( 'tiny_mce_plugins', array( $this, 'disable_emoji_tinymce' ) );
+			add_filter( 'wp_resource_hints', array( $this, 'disable_emoji_dns_prefetch' ), 10, 2 );
 		}
 	}
 
 	/**
-	 * Disable TinyMCE emoji plugin
+	 * Disable emoji TinyMCE plugin
 	 *
 	 * @param array $plugins TinyMCE plugins
 	 * @return array Modified plugins
 	 */
-	public function disable_emojis_tinymce( $plugins ) {
+	public function disable_emoji_tinymce( $plugins ) {
 		if ( is_array( $plugins ) ) {
 			return array_diff( $plugins, array( 'wpemoji' ) );
 		}
-		return array();
+		return $plugins;
 	}
 
 	/**
@@ -142,7 +142,7 @@ class SSLT_Core {
 	 * @param string $relation_type Relation type
 	 * @return array Modified URLs
 	 */
-	public function disable_emojis_dns_prefetch( $urls, $relation_type ) {
+	public function disable_emoji_dns_prefetch( $urls, $relation_type ) {
 		if ( 'dns-prefetch' === $relation_type ) {
 			$emoji_svg_url = apply_filters( 'emoji_svg_url', 'https://s.w.org/images/core/emoji/2/svg/' );
 			$urls = array_diff( $urls, array( $emoji_svg_url ) );
@@ -156,11 +156,10 @@ class SSLT_Core {
 	public function disable_embeds() {
 		$settings = $this->get_settings();
 		
-		if ( '1' === ( $settings['disable_embeds'] ?? '0' ) ) {
-			global $wp;
+		if ( '1' === $settings['disable_embeds'] ) {
+			wp_deregister_script( 'wp-embed' );
 			
-			$wp->public_query_vars = array_diff( $wp->public_query_vars, array( 'embed' ) );
-			
+			remove_filter( 'the_content', array( $GLOBALS['wp_embed'], 'autoembed' ), 8 );
 			remove_action( 'rest_api_init', 'wp_oembed_register_route' );
 			remove_filter( 'oembed_dataparse', 'wp_filter_oembed_result', 10 );
 			remove_action( 'wp_head', 'wp_oembed_add_discovery_links' );
@@ -203,7 +202,7 @@ class SSLT_Core {
 	public function disable_admin_bar_scripts() {
 		$settings = $this->get_settings();
 		
-		if ( '1' === ( $settings['disable_admin_bar_scripts'] ?? '0' ) && ! is_user_logged_in() ) {
+		if ( '1' === $settings['disable_admin_bar_scripts'] && ! is_user_logged_in() ) {
 			wp_dequeue_style( 'admin-bar' );
 			wp_dequeue_script( 'admin-bar' );
 		}
@@ -215,7 +214,7 @@ class SSLT_Core {
 	public function disable_dashicons() {
 		$settings = $this->get_settings();
 		
-		if ( '1' === ( $settings['disable_dashicons'] ?? '0' ) && ! is_user_logged_in() ) {
+		if ( '1' === $settings['disable_dashicons'] && ! is_user_logged_in() ) {
 			wp_dequeue_style( 'dashicons' );
 			wp_deregister_style( 'dashicons' );
 		}
@@ -227,7 +226,7 @@ class SSLT_Core {
 	public function enable_selective_blocks() {
 		$settings = $this->get_settings();
 		
-		if ( '1' === ( $settings['enable_selective_blocks'] ?? '0' ) ) {
+		if ( '1' === $settings['enable_selective_blocks'] ) {
 			global $wp_styles;
 			
 			if ( ! is_singular() && ! is_page() ) {
@@ -242,11 +241,32 @@ class SSLT_Core {
 			$blocks = parse_blocks( $post->post_content );
 			$block_names = $this->get_block_names_from_blocks( $blocks );
 			
+			// Essential blocks that may exist outside post content
+			// These are typically in theme templates, headers, footers
+			$essential_blocks = array(
+				'navigation',        // Navigation menus
+				'site-logo',        // Site logo
+				'site-title',       // Site title
+				'site-tagline',     // Site tagline
+				'template-part',    // Template parts
+				'post-navigation-link', // Post navigation
+				'query',            // Query blocks (archives, loops)
+				'post-template',    // Post template
+				'avatar',           // User avatars
+				'loginout',         // Login/logout link
+			);
+			
 			// Remove block styles that aren't used
 			foreach ( $wp_styles->registered as $handle => $style ) {
 				if ( 0 === strpos( $handle, 'wp-block-' ) ) {
 					$block_name = str_replace( 'wp-block-', '', $handle );
 					
+					// Skip essential blocks
+					if ( in_array( $block_name, $essential_blocks, true ) ) {
+						continue;
+					}
+					
+					// Check if block is in content
 					if ( ! in_array( $block_name, $block_names, true ) && ! in_array( 'core/' . $block_name, $block_names, true ) ) {
 						wp_dequeue_style( $handle );
 					}
@@ -289,7 +309,7 @@ class SSLT_Core {
 	public function disable_global_styles() {
 		$settings = $this->get_settings();
 		
-		if ( '1' === ( $settings['disable_global_styles'] ?? '0' ) ) {
+		if ( '1' === $settings['disable_global_styles'] ) {
 			wp_dequeue_style( 'global-styles' );
 			wp_dequeue_style( 'wp-block-library-theme' );
 		}
@@ -304,7 +324,7 @@ class SSLT_Core {
 	public function disable_classic_theme_styles( $theme_json ) {
 		$settings = $this->get_settings();
 		
-		if ( '1' === ( $settings['disable_classic_theme_styles'] ?? '0' ) ) {
+		if ( '1' === $settings['disable_classic_theme_styles'] ) {
 			remove_action( 'wp_enqueue_scripts', 'wp_enqueue_classic_theme_styles' );
 			
 			$new_data = $theme_json->get_data();
@@ -325,7 +345,7 @@ class SSLT_Core {
 	public function disable_recent_comments_style() {
 		$settings = $this->get_settings();
 		
-		if ( '1' === ( $settings['disable_recent_comments_style'] ?? '0' ) ) {
+		if ( '1' === $settings['disable_recent_comments_style'] ) {
 			global $wp_widget_factory;
 			
 			if ( isset( $wp_widget_factory->widgets['WP_Widget_Recent_Comments'] ) ) {
